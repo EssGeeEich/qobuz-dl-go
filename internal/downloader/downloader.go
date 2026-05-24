@@ -297,14 +297,14 @@ func (d *Downloader) downloadAlbum(ctx context.Context, albumID, baseDir string)
 	// Build folder name
 	folderFmt := cleanFormatStr(d.Opts.FolderFormat, fileFormat)
 	folderName := expandPlaceholders(folderFmt, map[string]string{
-		"{artist}":        sanitize(artist),
-		"{album}":         sanitize(title),
+		"{artist}":        artist,
+		"{album}":         title,
 		"{year}":          year,
 		"{bit_depth}":     fmt.Sprintf("%v", bitDepth),
 		"{sampling_rate}": fmt.Sprintf("%v", samplingRate),
 		"{format}":        fileFormat,
 	})
-	albumDir := filepath.Join(baseDir, sanitize(folderName))
+	albumDir := filepath.Join(baseDir, folderName)
 	if err := os.MkdirAll(albumDir, 0755); err != nil {
 		return fmt.Errorf("create album directory %q: %w", albumDir, err)
 	}
@@ -534,13 +534,13 @@ func (d *Downloader) downloadTrackByID(ctx context.Context, trackID, baseDir str
 
 	folderFmt := cleanFormatStr(d.Opts.FolderFormat, fileFormat)
 	folderName := expandPlaceholders(folderFmt, map[string]string{
-		"{artist}":        sanitize(albumArtist),
-		"{album}":         sanitize(albumTitle),
+		"{artist}":        albumArtist,
+		"{album}":         albumTitle,
 		"{year}":          year,
 		"{bit_depth}":     fmt.Sprintf("%v", int(bitDepth)),
 		"{sampling_rate}": fmt.Sprintf("%v", samplingRate),
 	})
-	trackDir := filepath.Join(baseDir, sanitize(folderName))
+	trackDir := filepath.Join(baseDir, folderName)
 	if err := os.MkdirAll(trackDir, 0755); err != nil {
 		return fmt.Errorf("create track directory %q: %w", trackDir, err)
 	}
@@ -635,7 +635,7 @@ func (d *Downloader) downloadAndTag(
 		"{version}":       fmt.Sprintf("%v", trackMeta["version"]),
 	}
 	formatted := expandPlaceholders(trackFmt, filenameAttrs)
-	finalFile := filepath.Join(dir, sanitize(formatted))
+	finalFile := filepath.Join(dir, formatted)
 	// Trim to 250 runes to stay within filesystem limits without splitting
 	// multi-byte UTF-8 characters (e.g. CJK, Arabic, emoji in track titles).
 	if runes := []rune(finalFile); len(runes) > 250 {
@@ -1181,7 +1181,7 @@ func expandPlaceholders(format string, attrs map[string]string) string {
 		if v == "" || v == "<nil>" || v == "%!v(MISSING)" {
 			v = "n_a"
 		}
-		result = strings.ReplaceAll(result, k, v)
+		result = strings.ReplaceAll(result, k, sanitize(v))
 	}
 	return result
 }
